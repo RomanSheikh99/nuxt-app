@@ -38,12 +38,45 @@
     </v-app-bar>
 
     <v-main class="grey lighten-3">
-      <v-container>
+      <v-container fluid>
         <v-row>
           <v-col cols="2">
             <v-sheet rounded="lg">
               <v-list color="transparent">
                 <v-list-item
+                  link
+                >
+                  <v-list-item-content>
+                    <v-list-item-title>
+                      <NLink to="/weatherapp">
+                        Weather App
+                      </NLink>
+                    </v-list-item-title>
+                  </v-list-item-content>
+                </v-list-item>
+                <v-list-item
+                  link
+                >
+                  <v-list-item-content>
+                    <v-list-item-title>
+                      <NLink to="/task">
+                        Task Board
+                      </NLink>
+                    </v-list-item-title>
+                  </v-list-item-content>
+                </v-list-item>
+                <v-list-item
+                  link
+                >
+                  <v-list-item-content>
+                    <v-list-item-title>
+                      <NLink to="/counter">
+                        counter
+                      </NLink>
+                    </v-list-item-title>
+                  </v-list-item-content>
+                </v-list-item>
+                <!-- <v-list-item
                   v-for="n in 5"
                   :key="n"
                   link
@@ -53,7 +86,7 @@
                       List Item {{ n }}
                     </v-list-item-title>
                   </v-list-item-content>
-                </v-list-item>
+                </v-list-item> -->
 
                 <v-divider class="my-2"></v-divider>
 
@@ -63,9 +96,12 @@
                 >
                   <v-list-item-content>
                     <v-list-item-title>
-                      <NuxtLink to="/login">
+                      <NuxtLink v-if="!user" to="/login">
                         Login/Register
                       </NuxtLink>
+                      <h3 v-else @click="logout">
+                        Logout
+                      </h3>
                     </v-list-item-title>
                   </v-list-item-content>
                 </v-list-item>
@@ -75,12 +111,10 @@
 
           <v-col>
             <v-sheet
-              min-height="70vh"
+              class="grey lighten-3"
+              min-height="80vh"
               rounded="lg"
             >
-              <div class="text-center py-10">
-                <h1>This Is User Layout</h1>
-              </div>
               <Nuxt />
             </v-sheet>
           </v-col>
@@ -103,6 +137,16 @@ export default {
         {link: 'Blogs', to: '/blogs'},
       ],
     }
-  }
+  },
+  computed: {
+        user (){
+            return this.$store.state.user.user
+        }
+    },
+    methods: {
+      logout(){
+        this.$store.commit('user/logout')
+      }
+    }
 }
 </script>

@@ -8,9 +8,6 @@
               min-height="70vh"
               rounded="lg"
             >
-              <div class="text-center py-10">
-                <h1>This Is Authentication Layout</h1>
-              </div>
               <Nuxt />
             </v-sheet>
           </v-col>
