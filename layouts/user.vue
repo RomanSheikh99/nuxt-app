@@ -76,17 +76,6 @@
                     </v-list-item-title>
                   </v-list-item-content>
                 </v-list-item>
-                <!-- <v-list-item
-                  v-for="n in 5"
-                  :key="n"
-                  link
-                >
-                  <v-list-item-content>
-                    <v-list-item-title>
-                      List Item {{ n }}
-                    </v-list-item-title>
-                  </v-list-item-content>
-                </v-list-item> -->
 
                 <v-divider class="my-2"></v-divider>
 
@@ -135,6 +124,7 @@ export default {
         {link: 'Profile', to: '/profile'},
         {link: 'About', to: '/about'},
         {link: 'Blogs', to: '/blogs'},
+        {link: 'Task Board', to: '/taskbar'},
       ],
     }
   },

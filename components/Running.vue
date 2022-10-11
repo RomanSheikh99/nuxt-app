@@ -1,8 +1,8 @@
 <template>
   <v-col cols="3">
-    <v-card elevation="0">
-      <v-card-title class="grey lighten-3">
-        <span class="text-h5 text-capitalize">running</span>
+    <v-card color="#EBECF0" class="px-3 py-2" elevation="0">
+      <v-card-title>
+        <span class="text-capitalize">running</span>
         <v-spacer></v-spacer>
         <v-menu bottom left>
               <template v-slot:activator="{ on, attrs }">
@@ -64,10 +64,8 @@
               </v-card>
             </v-dialog>
 
-
-
         <v-spacer></v-spacer>
-      <draggable class="grey lighten-3" :list="todos" group="todo" @change="log">
+      <draggable style="min-height: 68vh;" :list="todos" group="todo" @change="log">
         <v-list-item
           v-for="(item , i) in todos"
           :key="item.title"
@@ -135,7 +133,6 @@
             </v-dialog>
       <v-dialog v-model="details.state" width="60%">
         <v-card>
-          {{details.data}}
           <v-card-title class="text-capitalize text-h5 grey lighten-2">
             {{details.data?.title}}
           </v-card-title>
@@ -191,29 +188,19 @@
 
 <script>
     import draggable from "vuedraggable";
+
     export default {
-    layout: 'user',
         components: {
         draggable
         },
   data: () => ({
-    headers: [
-          { text: 'Change By', value: 'changeBy' },
-          { text: 'Start Time', value: 'lastChangeTime' },
-          { text: 'End Time', value: 'changeTime' },
-          { text: 'Duration', value: 'duration' },
-          { text: 'From Stage', value: 'fromStage' },
-          { text: 'To Stage', value: 'toStage' },
-        ],
-    stage: 'running',
     details: {
           state: false,
           data: {},
         },
-        editMode: false,
+    editMode: false,
     dialog: false,
     editedData: {},
-    importancy: ['Immediate','High', 'Medium', 'Low'],
     data: {
       title: '',
       des: '',
@@ -221,12 +208,7 @@
       asignTo: '',
       importancy: '',
     },
-    todos:[
-    {id: "134533t3r", title: 'ui dsign', startDate: '22 may 2022', dedLine: '16 oct 2022', asignTo: 'admin', importancy: 'high', stage: 'running', updatedTime: '2:15:17 PM', changes: [],},
-    {id: "223523432", title: 'code ready', startDate: '22 may 2022', dedLine: '16 oct 2022', asignTo: 'admin', importancy: 'high', stage: 'running', updatedTime: '2:15:17 PM', changes: [],},
-    {id: "2342432", title: 'front end', startDate: '22 may 2022', dedLine: '16 oct 2022', asignTo: 'admin', importancy: 'high', stage: 'running', updatedTime: '2:15:17 PM', changes: [],},
-    {id: "423234242", title: 'back end complited', startDate: '22 may 2022', dedLine: '16 oct 2022', asignTo: 'admin', importancy: 'high', stage: 'running', updatedTime: '2:15:17 PM', changes: [],}
-  ],
+    todos:[],
   }),
   computed: {
         users (){
@@ -237,32 +219,25 @@
         },
         user (){
             return this.$store.state.user.user
-        }
+        },
+        headers (){
+            return this.$store.state.headers
+        },
+        importancy (){
+            return this.$store.state.importancy
+        },
+    },
+    mounted(){
+        this.todos = [...this.$store.state.runningTodos.todos]
+    },
+    watch:{
+      todos(nv){
+        this.$store.commit('runningTodos/addTodos', [...nv])
+      }
     },
     methods:{
         log(evt){
-          console.log(evt);
-          if(evt.added){
-            let d = new Date();
-            let addedTodo = evt.added.element
-            let lastTime = addedTodo.updatedTime;
-            let lastStage = addedTodo.stage;
-            addedTodo.updatedTime = d.toLocaleTimeString();
-            addedTodo.stage = 'running'
-            addedTodo.changes.push({
-              changeBy: this.user.name,
-              userEmail: this.user.email,
-              lastChangeTime: lastTime,
-              changeTime: d.toLocaleTimeString(),
-              duration: '',
-              fromStage: lastStage,
-              toStage: 'running',
-            })
-            let findTodo = this.todos.find(todo => todo.id == addedTodo.id)
-            let index = this.todos.indexOf(findTodo);
-            this.todos[index] = addedTodo; 
-            console.log(addedTodo)
-          }
+          this.$store.commit('runningTodos/log', {evt: evt, user: this.user, stage: 'running'})
         },
         openEditModal(i){
           this.editMode = true;
@@ -303,4 +278,3 @@
     },
     }
   </script>
-

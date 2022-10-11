@@ -25,8 +25,5 @@ export const state = () => ({
   }
     
   export const getters = {
-    getUsers(state) {
-      return state.users 
-    }
   }
   

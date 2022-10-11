@@ -1,8 +1,8 @@
 <template>
   <v-col cols="3">
-    <v-card elevation="0">
-      <v-card-title class="grey lighten-3">
-        <span class="text-h5 text-capitalize">To Do</span>
+    <v-card color="#EBECF0" class="px-3 py-2" elevation="0">
+      <v-card-title>
+        <span class="text-capitalize">To Do</span>
         <v-spacer></v-spacer>
         <v-menu bottom left>
               <template v-slot:activator="{ on, attrs }">
@@ -34,12 +34,6 @@
                     <v-row>
                       <v-col cols="4">
                         <v-text-field v-model="data.dedLine" label="Add Dedline" type="date"></v-text-field>
-                        <!-- <v-date-picker
-      v-model="data.dedLine"
-      year-icon="mdi-calendar-blank"
-      prev-icon="mdi-skip-previous"
-      next-icon="mdi-skip-next"
-    ></v-date-picker> -->
                       </v-col>
                       <v-col cols="4">
                         <v-autocomplete
@@ -53,6 +47,27 @@
                           v-model="data.importancy"
                           :items="importancy"
                           label="Importancy"
+                      ></v-autocomplete>
+                      </v-col>
+                      <v-col cols="5">
+                          <label>Estimate Time</label>
+                          <v-row class="align-center d-flex">
+                            <v-col cols="5">
+                              <v-text-field v-model="data.estimateTime_hh" label="HH"></v-text-field>
+                            </v-col>
+                            <v-col cols="2">
+                              <h1> : </h1>
+                            </v-col>
+                            <v-col cols="5">
+                              <v-text-field v-model="data.estimateTime_mm" label="MM"></v-text-field>
+                            </v-col>
+                          </v-row>
+                      </v-col>
+                      <v-col cols="7">
+                        <v-autocomplete
+                          v-model="data.project"
+                          :items="projects"
+                          label="Project"
                       ></v-autocomplete>
                       </v-col>
                     </v-row>
@@ -70,14 +85,13 @@
               </v-card>
             </v-dialog>
 
-
-
         <v-spacer></v-spacer>
-      <draggable class="grey lighten-3" :list="todos" group="todo" @change="log">
+      <draggable style="min-height: 68vh;" :list="todos" group="todo" @change="log">
         <v-list-item
           v-for="(item , i) in todos"
           :key="item.title"
           link
+          elevation="8"
           class="white rounded mb-3"
         >
         <v-row>
@@ -103,6 +117,9 @@
               <v-list-item link @click="openEditModal(i)">
                 <v-list-item-title>Edit Task</v-list-item-title>
               </v-list-item>
+              <v-list-item link @click="addTime(i)">
+                <v-list-item-title>Add Time</v-list-item-title>
+              </v-list-item>
               <v-list-item link @click="deleteTask(i)">
                 <v-list-item-title>Delete Task</v-list-item-title>
               </v-list-item>
@@ -117,6 +134,35 @@
           </v-row>
         </v-list-item>
       </draggable>
+            <v-dialog v-model="addTimeModal" width="50%">
+              <v-card>
+                <v-card-title class="text-h5 grey lighten-2">
+                  Add Work Time
+                </v-card-title>
+                <v-card-text>
+                          <v-row class="align-center d-flex">
+                            <v-col cols="5">
+                              <v-text-field v-model="hour" label="HH"></v-text-field>
+                            </v-col>
+                            <v-col cols="2">
+                              <h1> : </h1>
+                            </v-col>
+                            <v-col cols="5">
+                              <v-text-field v-model="min" label="MM"></v-text-field>
+                            </v-col>
+                          </v-row>
+                </v-card-text>
+                <v-card-actions>
+                  <v-btn text @click="addTimeModal = !addTimeModal" >
+                    Cancel
+                  </v-btn>
+                  <v-spacer></v-spacer>
+                  <v-btn color="primary" text @click="addWorkTime(addedTimeData)" >
+                    Submit
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-dialog>
             <v-dialog v-model="editMode" width="50%">
               <v-card>
                 <v-card-title class="text-h5 grey lighten-2">
@@ -141,10 +187,17 @@
             </v-dialog>
       <v-dialog v-model="details.state" width="60%">
         <v-card>
-          {{details.data}}
-          <v-card-title class="text-capitalize text-h5 grey lighten-2">
-            {{details.data?.title}}
-          </v-card-title>
+          <div class="d-flex pa-2 px-4 grey lighten-2 align-center justify-space-between">
+            <div class="text-capitalize">
+            <h2 class="text-h4">{{details.data?.title}}</h2>
+            <small class="blue--text text-h6">In Stage {{details.data?.stage}}</small>
+            </div>
+            <div>
+              <v-btn @click="details.state = !details.state;" plain>
+                <v-icon class="blue--text text-h2 black-text">mdi-close</v-icon>
+              </v-btn>
+            </div>
+          </div>
           <v-card-text>
             <h4 class="text-center text-capitalize my-3">{{details.data.des ? details.data.des : "No Details Added"}}</h4>
             <div class="d-flex align-center justify-space-between my-2">
@@ -156,7 +209,13 @@
                 <small class="black--text">Ded Line:</small>
                 {{details.data?.dedLine}}
               </h2>
+              <h2 class="blue--text text-capitalize">
+                <small class="black--text">Estimate Time:</small>
+                {{details.data?.estimateTime_hh}}<small>h</small> 
+                {{details.data?.estimateTime_mm}}<small>m</small>
+              </h2>
             </div>
+            <v-divider></v-divider>
             <div class="d-flex align-center justify-space-between my-3">
               <h2 class="yellow--text text-capitalize">
                 <small class="black--text">Added Time:</small>
@@ -167,14 +226,15 @@
                 {{details.data?.updatedTime}}
               </h2>
             </div>
+            <v-divider></v-divider>
             <div class="d-flex align-center justify-space-between my-3">
+              <h2 class="blue--text text-capitalize">
+                <small class="black--text">Project:</small>
+                {{details.data?.project}}
+              </h2>
               <h2 class="blue--text text-capitalize">
                 <small class="black--text">Asign To:</small>
                 {{details.data?.asignTo}}
-              </h2>
-              <h2 class="blue--text text-capitalize">
-                <small class="black--text">Stage:</small>
-                {{details.data?.stage}}
               </h2>
               <h2 class="blue--text text-capitalize">
                 <small class="black--text">Importancy:</small>
@@ -197,42 +257,36 @@
 
 <script>
     import draggable from "vuedraggable";
+
     export default {
-    layout: 'user',
         components: {
         draggable
         },
   data: () => ({
-    headers: [
-          { text: 'Change By', value: 'changeBy' },
-          { text: 'Start Time', value: 'lastChangeTime' },
-          { text: 'End Time', value: 'changeTime' },
-          { text: 'Duration', value: 'duration' },
-          { text: 'From Stage', value: 'fromStage' },
-          { text: 'To Stage', value: 'toStage' },
-        ],
-    stage: 'todo',
     details: {
           state: false,
           data: {},
         },
-        editMode: false,
+    editMode: false,
+    addTimeModal: false,
     dialog: false,
     editedData: {},
-    importancy: ['Immediate','High', 'Medium', 'Low'],
+    addedTimeData: {},
+    min: '',
+    hour: '',
     data: {
       title: '',
       des: '',
       dedLine: '',
       asignTo: '',
       importancy: '',
+      project: '',
+      estimateTime_hh: '',
+      estimateTime_mm: '',
+        // hh: '', mm: ''
+      // }
     },
-    todos:[
-    {id: "134533t3r", title: 'ui dsign', startDate: '22 may 2022', dedLine: '16 oct 2022', asignTo: 'admin', importancy: 'high', stage: 'todo', updatedTime: '2:15:17 PM', changes: [],},
-    {id: "223523432", title: 'code ready', startDate: '22 may 2022', dedLine: '16 oct 2022', asignTo: 'admin', importancy: 'high', stage: 'todo', updatedTime: '2:15:17 PM', changes: [],},
-    {id: "2342432", title: 'front end', startDate: '22 may 2022', dedLine: '16 oct 2022', asignTo: 'admin', importancy: 'high', stage: 'todo', updatedTime: '2:15:17 PM', changes: [],},
-    {id: "423234242", title: 'back end complited', startDate: '22 may 2022', dedLine: '16 oct 2022', asignTo: 'admin', importancy: 'high', stage: 'todo', updatedTime: '2:15:17 PM', changes: [],}
-  ],
+    todos:[],
   }),
   computed: {
         users (){
@@ -241,38 +295,41 @@
             users.map(u => names.push(u.name))
             return names
         },
+        projects (){
+            const names = [];
+            const projects = this.$store.state.projects.projects;
+            projects.map(p => names.push(p.title))
+            return names
+        },
         user (){
             return this.$store.state.user.user
-        }
+        },
+        headers (){
+            return this.$store.state.headers
+        },
+        importancy (){
+            return this.$store.state.importancy
+        },
+    },
+    mounted(){
+        this.todos = [...this.$store.state.todo.todos]
+    },
+    watch:{
+      todos(nv){
+        this.$store.commit('todo/addTodos', [...nv])
+      }
     },
     methods:{
         log(evt){
-          console.log(evt);
-          if(evt.added){
-            let d = new Date();
-            let addedTodo = evt.added.element
-            let lastTime = addedTodo.updatedTime;
-            let lastStage = addedTodo.stage;
-            addedTodo.updatedTime = d.toLocaleTimeString();
-            addedTodo.stage = 'todo'
-            addedTodo.changes.push({
-              changeBy: this.user.name,
-              userEmail: this.user.email,
-              lastChangeTime: lastTime,
-              changeTime: d.toLocaleTimeString(),
-              duration: '',
-              fromStage: lastStage,
-              toStage: 'todo',
-            })
-            let findTodo = this.todos.find(todo => todo.id == addedTodo.id)
-            let index = this.todos.indexOf(findTodo);
-            this.todos[index] = addedTodo; 
-            console.log(addedTodo)
-          }
+          this.$store.commit('todo/log', {evt: evt, user: this.user, stage: 'todo'})
         },
         openEditModal(i){
           this.editMode = true;
           this.editedData = this.todos[i];
+        },
+        addTime(i){
+          this.addTimeModal = true;
+          this.addedTimeData = this.todos[i];
         },
         closeEditModal(){
           this.editMode = false;
@@ -302,6 +359,13 @@
           this.todos[index] = this.editedData;
           this.editMode = false;
         },
+        addWorkTime(data){
+          data.workTime_hh = this.hour;
+          data.workTime_mm = this.min;
+          let index = this.todos.indexOf(data)
+          this.todos[index] = data;
+          this.addTimeModal = false;
+        },
         showDetails(id){
           this.details.data = this.todos.find(d => d.id === id);
           this.details.state = !this.details.state;
@@ -309,19 +373,3 @@
     },
     }
   </script>
-
-  <!-- js time format -->
-
-<!-- let d = new Date();
-const weekday = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-let day = weekday[d.getDay()];
-let date = d.getDate();
-const month = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-let monthName = month[d.getMonth()];
-let year = d.getFullYear();
-let hour = d.getHours();
-let minutes = d.getMinutes();
-let seconds = d.getSeconds();
-let time = day +", "+date+" "+monthName+' '+year+", "+ hour+":"+minutes+":"+seconds
-
-console.log(time) -->
