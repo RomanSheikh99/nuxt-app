@@ -1,6 +1,6 @@
 export const state = () => ({
-  filterUser: '',
-  filterProject: '',
+  filterUser: [],
+  filterProject: [],
   counter: 0,
   headers: [
     { text: 'Change By', value: 'changeBy' },
