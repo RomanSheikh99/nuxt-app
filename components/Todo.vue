@@ -2,7 +2,7 @@
   <v-col cols="3">
     <v-card color="#EBECF0" class="px-3 py-2" elevation="0">
       <v-card-title>
-        <span class="text-capitalize">To Do</span>
+        <span class="text-capitalize">To Do {{viewTodos.index}}</span>
         <v-spacer></v-spacer>
         <v-menu bottom left>
               <template v-slot:activator="{ on, attrs }">
@@ -86,9 +86,9 @@
             </v-dialog>
 
         <v-spacer></v-spacer>
-      <draggable style="min-height: 68vh;" :list="todos" group="todo" @change="log">
+      <draggable style="min-height: 68vh;" :list="viewTodos" group="todo" @change="log">
         <v-list-item
-          v-for="(item , i) in todos"
+          v-for="(item , i) in viewTodos"
           :key="item.title"
           link
           elevation="8"
@@ -114,7 +114,7 @@
               </v-btn>
             </template>
             <v-list class="">
-              <v-list-item link @click="openEditModal(i)">
+              <v-list-item link @click="openEditModal(item.id)">
                 <v-list-item-title>Edit Task</v-list-item-title>
               </v-list-item>
               <v-list-item link @click="addTime(i)">
@@ -163,93 +163,8 @@
                 </v-card-actions>
               </v-card>
             </v-dialog>
-            <v-dialog v-model="editMode" width="50%">
-              <v-card>
-                <v-card-title class="text-h5 grey lighten-2">
-                  Edit Task
-                </v-card-title>
-
-                <v-card-text>
-                    <v-text-field v-model="editedData.title"></v-text-field>
-                    <v-textarea v-model="editedData.des"></v-textarea>
-                </v-card-text>
-
-                <v-card-actions>
-                  <v-btn text @click="closeEditModal" >
-                    Cancel
-                  </v-btn>
-                  <v-spacer></v-spacer>
-                  <v-btn color="primary" text @click="submitEditedTask(editedData.id)" >
-                    Submit
-                  </v-btn>
-                </v-card-actions>
-              </v-card>
-            </v-dialog>
-      <v-dialog v-model="details.state" width="60%">
-        <v-card>
-          <div class="d-flex pa-2 px-4 grey lighten-2 align-center justify-space-between">
-            <div class="text-capitalize">
-            <h2 class="text-h4">{{details.data?.title}}</h2>
-            <small class="blue--text text-h6">In Stage {{details.data?.stage}}</small>
-            </div>
-            <div>
-              <v-btn @click="details.state = !details.state;" plain>
-                <v-icon class="blue--text text-h2 black-text">mdi-close</v-icon>
-              </v-btn>
-            </div>
-          </div>
-          <v-card-text>
-            <h4 class="text-center text-capitalize my-3">{{details.data.des ? details.data.des : "No Details Added"}}</h4>
-            <div class="d-flex align-center justify-space-between my-2">
-              <h2 class="yellow--text text-capitalize">
-                <small class="black--text">Start Date:</small>
-                {{details.data?.startDate}}
-              </h2>
-              <h2 class="red--text text-capitalize">
-                <small class="black--text">Ded Line:</small>
-                {{details.data?.dedLine}}
-              </h2>
-              <h2 class="blue--text text-capitalize">
-                <small class="black--text">Estimate Time:</small>
-                {{details.data?.estimateTime_hh}}<small>h</small> 
-                {{details.data?.estimateTime_mm}}<small>m</small>
-              </h2>
-            </div>
-            <v-divider></v-divider>
-            <div class="d-flex align-center justify-space-between my-3">
-              <h2 class="yellow--text text-capitalize">
-                <small class="black--text">Added Time:</small>
-                {{details.data?.startTime}}
-              </h2>
-              <h2 class="red--text text-capitalize">
-                <small class="black--text">Last Updated:</small>
-                {{details.data?.updatedTime}}
-              </h2>
-            </div>
-            <v-divider></v-divider>
-            <div class="d-flex align-center justify-space-between my-3">
-              <h2 class="blue--text text-capitalize">
-                <small class="black--text">Project:</small>
-                {{details.data?.project}}
-              </h2>
-              <h2 class="blue--text text-capitalize">
-                <small class="black--text">Asign To:</small>
-                {{details.data?.asignTo}}
-              </h2>
-              <h2 class="blue--text text-capitalize">
-                <small class="black--text">Importancy:</small>
-                {{details.data?.importancy}}
-              </h2>
-            </div>
-          </v-card-text>
-          <v-data-table
-    :headers="headers"
-    :items="details.data.changes"
-    :items-per-page="5"
-    class="elevation-1"
-  ></v-data-table>
-        </v-card>
-      </v-dialog>
+            <Edit :edit="{editMode: editMode, editedData: editedData, closeEditModal: closeEditModal, submitEditedTask: submitEditedTask}"></Edit>
+            <Details :details="details"></Details>
     </v-card>
   </v-col>
 </template>
@@ -259,9 +174,7 @@
     import draggable from "vuedraggable";
 
     export default {
-        components: {
-        draggable
-        },
+      components: {draggable,},
   data: () => ({
     details: {
           state: false,
@@ -283,10 +196,9 @@
       project: '',
       estimateTime_hh: '',
       estimateTime_mm: '',
-        // hh: '', mm: ''
-      // }
     },
     todos:[],
+    viewTodos:[],
   }),
   computed: {
         users (){
@@ -304,28 +216,65 @@
         user (){
             return this.$store.state.user.user
         },
-        headers (){
-            return this.$store.state.headers
-        },
         importancy (){
             return this.$store.state.importancy
         },
+        filterUser (){
+            return this.$store.state.filterUser
+        },
+        filterProject (){
+            return this.$store.state.filterProject
+        },
     },
     mounted(){
-        this.todos = [...this.$store.state.todo.todos]
+          this.editedData = {...this.$store.state.todo.editedData}
+          this.todos = [...this.$store.state.todo.todos]
+          this.showTask()
     },
     watch:{
+      filterUser(nv){
+        this.showTask();
+      },
+      filterProject(nv){
+        this.showTask();
+      },
       todos(nv){
         this.$store.commit('todo/addTodos', [...nv])
+      },
+      editMode(nv){
+        this.editedData = {...this.$store.state.todo.editedData}
+        this.todos = [...this.$store.state.todo.todos]
+        this.showTask()
       }
     },
     methods:{
+      showTask(){
+        if(!this.filterProject && !this.filterUser){
+          this.viewTodos = this.todos
+        }
+        else if(!this.filterProject && this.filterUser){
+          const todos = this.todos
+          const filterTodos = todos.filter(todo => todo.asignTo === this.filterUser)
+          this.viewTodos = filterTodos;
+        }
+        else if(this.filterProject && !this.filterUser){
+          const todos = this.todos
+          const filterTodos = todos.filter(todo => todo.project === this.filterProject)
+          this.viewTodos = filterTodos;
+        }
+        else{
+          const todos = this.todos
+          const filterByProject = todos.filter(todo => todo.project === this.filterProject)
+          const filterTodos = filterByProject.filter(todo => todo.asignTo === this.filterUser)
+          this.viewTodos = filterTodos;
+        }
+      },
         log(evt){
           this.$store.commit('todo/log', {evt: evt, user: this.user, stage: 'todo'})
         },
-        openEditModal(i){
+        openEditModal(id){
+          this.$store.commit('todo/setEditedData', id)
           this.editMode = true;
-          this.editedData = this.todos[i];
         },
         addTime(i){
           this.addTimeModal = true;
@@ -352,11 +301,7 @@
           this.todos.splice(i,1);
         },
         submitEditedTask(id){
-          let targetData = this.todos.find(d => d.id == id);
-          let d = new Date();
-          targetData.updatedTime = d.toLocaleTimeString();
-          let index = this.todos.indexOf(targetData)
-          this.todos[index] = this.editedData;
+          this.$store.commit('todo/editTodo', {id: id, data: this.editedData})
           this.editMode = false;
         },
         addWorkTime(data){

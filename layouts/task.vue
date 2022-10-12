@@ -49,6 +49,22 @@
           <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
   
         <v-toolbar-title>Application</v-toolbar-title>
+        <v-spacer></v-spacer>
+        <v-autocomplete
+        clearable
+          class="mt-4"
+          v-model="filterUser"
+          :items="users"
+          label="Filter By User"
+         ></v-autocomplete>
+         <v-spacer></v-spacer>
+        <v-autocomplete
+        clearable
+          class="mt-4"
+          v-model="filterProject"
+          :items="projects"
+          label="Filter By Project"
+         ></v-autocomplete>
       </v-app-bar>
   
       <v-main>
@@ -63,12 +79,36 @@
     export default {
       data: () => ({ 
         drawer: null,
+        filterUser: '',
+        filterProject: '',
         items: [
           { title: 'Projects', icon: 'mdi-view-dashboard', to: '/projects' },
           { title: 'Task Board', icon: 'mdi-image',to: '/taskbar' },
           { title: 'Users', icon: 'mdi-help-box', to: '/users' },
         ],
      }),
+     watch: {
+      filterUser(nv){
+        this.$store.commit('setFilterUser', nv)
+      },
+      filterProject(nv){
+        this.$store.commit('setFilterProject', nv)
+      },
+     }, 
+     computed: {
+      users (){
+            const names = [];
+            const users = this.$store.state.user.users;
+            users.map(u => names.push(u.name))
+            return names
+        },
+        projects (){
+            const names = [];
+            const projects = this.$store.state.projects.projects;
+            projects.map(p => names.push(p.title))
+            return names
+        },
+     }
     }
   </script>
   

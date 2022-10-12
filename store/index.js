@@ -1,4 +1,6 @@
 export const state = () => ({
+  filterUser: '',
+  filterProject: '',
   counter: 0,
   headers: [
     { text: 'Change By', value: 'changeBy' },
@@ -19,7 +21,13 @@ export const mutations = {
   },
   decrement(state) {
     state.counter--
-  }
+  },
+  setFilterUser(s,val){
+    s.filterUser = val;
+  },
+  setFilterProject(s,val){
+    s.filterProject = val;
+  },
 }
   
 export const getters = {

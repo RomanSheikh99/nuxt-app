@@ -29,6 +29,12 @@ export default {
     { src: '~/plugins/localStorage.js', ssr: false }
   ],
   components: true,
+  components: {
+    dirs: [
+      '@/components/',
+      '@/components/Dialogs/'
+    ]
+  },
 
   
   buildModules: [
