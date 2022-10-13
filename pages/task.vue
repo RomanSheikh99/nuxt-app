@@ -1,31 +1,23 @@
 <template>
-    <div class="task-board grey lighten-3">
-        <v-row class="mx-4">
-            <Todo></Todo>
-            <Running></Running>
-            <Testing></Testing>
-            <Complited></Complited>
-        </v-row>
-    </div>
+  <div style="overflow-x: auto;" class="ma-0 d-flex align-center">
+    <Todo v-for="stage in stages" :key="stage.id" :stage="stage.name"></Todo>
+  </div>
 </template>
- 
- 
-<script>
 
+<script>
 export default {
-    name: 'task',
-    layout: 'user',
-}
+  name: "task",
+  layout: "user",
+  data() {
+    return {
+      stages: [
+        { id: 1, name: "todo" },
+        { id: 2, name: "running" },
+        { id: 4, name: "testing" },
+        { id: 5, name: "complited" },
+        { id: 34, name: "plited" },
+      ],
+    };
+  },
+};
 </script>
- 
- 
-<style scoped>
-  .task-board {
-    /* background: #f2f5f8; */
-    padding: 20px 10px;
-    padding-bottom: 40px;
-    height: 100%;
-    width: 100%;
-    border-radius: 6px;
-  }
-</style>

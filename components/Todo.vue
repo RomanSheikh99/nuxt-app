@@ -1,8 +1,8 @@
 <template>
-  <v-col cols="3">
+  <div style="min-width: 250px; margin: 20px 10px;">
     <v-card color="#EBECF0" class="px-3 py-2" elevation="0">
       <v-card-title>
-        <span class="text-capitalize">To Do {{ viewTodos.index }}</span>
+        <span class="text-capitalize">{{ stage }} {{ viewTodos.length }}</span>
         <v-spacer></v-spacer>
         <v-menu bottom left>
           <template v-slot:activator="{ on, attrs }">
@@ -22,7 +22,6 @@
           <v-card-title class="text-h5 grey lighten-2">
             Add New ToDo
           </v-card-title>
-
           <v-card-text>
             <v-text-field
               label="ToDo Title"
@@ -61,6 +60,7 @@
                     <v-text-field
                       v-model="data.estimateTime_hh"
                       label="HH"
+                      type="number"
                     ></v-text-field>
                   </v-col>
                   <v-col cols="2">
@@ -70,6 +70,7 @@
                     <v-text-field
                       v-model="data.estimateTime_mm"
                       label="MM"
+                      type="number"
                     ></v-text-field>
                   </v-col>
                 </v-row>
@@ -83,7 +84,6 @@
               </v-col>
             </v-row>
           </v-card-text>
-
           <v-card-actions>
             <v-btn text @click="dialog = !dialog"> Cancel </v-btn>
             <v-spacer></v-spacer>
@@ -91,10 +91,9 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
-
       <v-spacer></v-spacer>
       <draggable
-        style="min-height: 68vh;"
+        style="min-height: 70vh;"
         :list="viewTodos"
         group="todo"
         @change="log"
@@ -124,10 +123,10 @@
                   <v-list-item link @click="openEditModal(item.id)">
                     <v-list-item-title>Edit Task</v-list-item-title>
                   </v-list-item>
-                  <v-list-item link @click="addTime(i)">
+                  <v-list-item link @click="addTime(item.id)">
                     <v-list-item-title>Add Time</v-list-item-title>
                   </v-list-item>
-                  <v-list-item link @click="deleteTask(i)">
+                  <v-list-item link @click="deleteTask(item.id)">
                     <v-list-item-title>Delete Task</v-list-item-title>
                   </v-list-item>
                 </v-list>
@@ -152,13 +151,21 @@
           <v-card-text>
             <v-row class="align-center d-flex">
               <v-col cols="5">
-                <v-text-field v-model="hour" label="HH"></v-text-field>
+                <v-text-field
+                  v-model="hour"
+                  label="HH"
+                  type="number"
+                ></v-text-field>
               </v-col>
               <v-col cols="2">
                 <h1>:</h1>
               </v-col>
               <v-col cols="5">
-                <v-text-field v-model="min" label="MM"></v-text-field>
+                <v-text-field
+                  v-model="min"
+                  label="MM"
+                  type="number"
+                ></v-text-field>
               </v-col>
             </v-row>
           </v-card-text>
@@ -181,7 +188,7 @@
       ></Edit>
       <Details :details="details"></Details>
     </v-card>
-  </v-col>
+  </div>
 </template>
 
 <script>
@@ -189,6 +196,7 @@ import draggable from "vuedraggable";
 
 export default {
   components: { draggable },
+  props: ["stage"],
   data: () => ({
     details: {
       state: false,
@@ -242,7 +250,7 @@ export default {
   },
   mounted() {
     this.editedData = { ...this.$store.state.todo.editedData };
-    this.todos = [...this.$store.state.todo.todos];
+    this.addedTimeData = { ...this.$store.state.todo.addedTimeData };
     this.showTask();
   },
   watch: {
@@ -257,14 +265,18 @@ export default {
     },
     editMode(nv) {
       this.editedData = { ...this.$store.state.todo.editedData };
-      this.todos = [...this.$store.state.todo.todos];
+      this.showTask();
+    },
+    addTimeModal(nv) {
+      this.addedTimeData = { ...this.$store.state.todo.addedTimeData };
       this.showTask();
     },
   },
   methods: {
     showTask() {
+      this.todos = [...this.$store.state.todo.todos];
       if (this.filterProject.length < 1 && this.filterUser.length < 1) {
-        this.viewTodos = this.todos;
+        this.viewTodos = this.todos.filter((todo) => todo.stage === this.stage);
       } else if (this.filterProject.length < 1 && this.filterUser.length > 0) {
         const todos = this.todos;
         const filterTodos = [];
@@ -275,7 +287,9 @@ export default {
             }
           }
         }
-        this.viewTodos = filterTodos;
+        this.viewTodos = filterTodos.filter(
+          (todo) => todo.stage === this.stage
+        );
       } else if (this.filterProject.length > 0 && this.filterUser.length < 1) {
         const todos = this.todos;
         const filterTodos = [];
@@ -286,7 +300,9 @@ export default {
             }
           }
         }
-        this.viewTodos = filterTodos;
+        this.viewTodos = filterTodos.filter(
+          (todo) => todo.stage === this.stage
+        );
       } else {
         const todos = this.todos;
         const filterByProject = [];
@@ -297,7 +313,6 @@ export default {
             }
           }
         }
-
         const filterTodos = [];
         for (let todo of filterByProject) {
           for (let user of this.filterUser) {
@@ -306,24 +321,25 @@ export default {
             }
           }
         }
-
-        this.viewTodos = filterTodos;
+        this.viewTodos = filterTodos.filter(
+          (todo) => todo.stage === this.stage
+        );
       }
     },
     log(evt) {
       this.$store.commit("todo/log", {
         evt: evt,
         user: this.user,
-        stage: "todo",
+        stage: this.stage,
       });
     },
     openEditModal(id) {
       this.$store.commit("todo/setEditedData", id);
       this.editMode = true;
     },
-    addTime(i) {
+    addTime(id) {
+      this.$store.commit("todo/setAddedTimeData", id);
       this.addTimeModal = true;
-      this.addedTimeData = this.todos[i];
     },
     closeEditModal() {
       this.editMode = false;
@@ -336,25 +352,28 @@ export default {
       todo.startDate = d.toLocaleDateString();
       todo.startTime = d.toLocaleTimeString();
       todo.updatedTime = d.toLocaleTimeString();
-      todo.stage = "todo";
+      todo.stage = this.stage;
       todo.changes = [];
-      this.todos.push(todo);
+      this.$store.commit("todo/addNewTodo", todo);
+      this.showTask();
       this.dialog = !this.dialog;
       this.data = {};
     },
-    deleteTask(i) {
-      this.todos.splice(i, 1);
+    deleteTask(id) {
+      this.$store.commit("todo/deleteTodo", id);
+      this.showTask();
     },
     submitEditedTask(id) {
       this.$store.commit("todo/editTodo", { id: id, data: this.editedData });
       this.editMode = false;
     },
     addWorkTime(data) {
-      data.workTime_hh = this.hour;
-      data.workTime_mm = this.min;
-      let index = this.todos.indexOf(data);
-      this.todos[index] = data;
+      data.workTime_hh = parseInt(this.hour);
+      data.workTime_mm = parseInt(this.min);
+      this.$store.commit(`todo/addWorkTime`, data);
       this.addTimeModal = false;
+      this.hour = "";
+      this.min = "";
     },
     showDetails(id) {
       this.details.data = this.todos.find((d) => d.id === id);
